@@ -47,6 +47,7 @@ jobs:
     - name: Activate, Add Spack
       run: |
         sudo apt-get install libllvm16 llvm-16 llvm-16-dev llvm-16-doc llvm-16-examples llvm-16-runtime
+        sudo apt-get install libclang-16-dev
         llvm_prefix=`llvm-config-16 --prefix`
 
         . external/spack/share/spack/setup-env.sh
