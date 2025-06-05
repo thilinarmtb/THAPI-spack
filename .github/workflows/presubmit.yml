@@ -1,10 +1,21 @@
 name: Presubmit
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled'
+        required: false
+        default: false
 jobs:
   pre_job:
     runs-on: ubuntu-latest
     outputs:
-      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+      should_skip: false
     steps:
       - id: skip_check
         uses: fkirc/skip-duplicate-actions@master
@@ -17,13 +28,16 @@ jobs:
   run_tests_gcc:
     strategy:
       matrix:
-        deps: ["thapi@develop%clang@19+clang-parser"]
+        deps: ["thapi@develop+clang-parser"]
     needs: pre_job
     if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3.13
+      if: ${{ inputs.debug_enabled }}
     - name: Checkout Spack
       uses: actions/checkout@v4
       with:
@@ -32,10 +46,22 @@ jobs:
         path: external/spack
     - name: Activate, Add Spack
       run: |
-        sudo apt-get install libllvm-19-ocaml-dev libllvm19 llvm-19 llvm-19-dev llvm-19-doc llvm-19-examples llvm-19-runtime
-        sudo apt-get install clang-19 clang-tools-19 clang-19-doc libclang-common-19-dev libclang-19-dev libclang1-19 python3-clang-19
+        sudo apt-get install libllvm16 llvm-16 llvm-16-dev llvm-16-doc llvm-16-examples llvm-16-runtime
+        llvm_prefix=`llvm-config-16 --prefix`
+
         . external/spack/share/spack/setup-env.sh
         spack repo add ./
         spack compiler find
+        spack external find
+
+        echo "llvm:"                      >> ~/.spack/packages.yaml
+        echo "  buildable: false"         >> ~/.spack/packages.yaml
+        echo "  externals:"               >> ~/.spack/packages.yaml
+        echo "  - spec: llvm@16+clang"    >> ~/.spack/packages.yaml
+        echo "    prefix: ${llvm_prefix}" >> ~/.spack/packages.yaml
+
         spack -d spec ${{ matrix.deps }}
         spack install --show-log-on-error --fail-fast ${{ matrix.deps }}
+    - name: Block to allow inspecting failures
+      run: sleep 30m
+      if: ${{ failure() && inputs.debug_enabled }}
