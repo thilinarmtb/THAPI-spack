@@ -54,11 +54,12 @@ jobs:
         spack compiler find
         spack external find
 
-        echo "llvm:"                      >> ~/.spack/packages.yaml
-        echo "  buildable: false"         >> ~/.spack/packages.yaml
-        echo "  externals:"               >> ~/.spack/packages.yaml
-        echo "  - spec: llvm@16+clang"    >> ~/.spack/packages.yaml
-        echo "    prefix: ${llvm_prefix}" >> ~/.spack/packages.yaml
+        echo "  llvm:"                      >> ~/.spack/packages.yaml
+        echo "    buildable: false"         >> ~/.spack/packages.yaml
+        echo "    externals:"               >> ~/.spack/packages.yaml
+        echo "    - spec: llvm@16+clang"    >> ~/.spack/packages.yaml
+        echo "      prefix: ${llvm_prefix}" >> ~/.spack/packages.yaml
+        cat ~/.spack/packages.yaml
 
         spack -d spec ${{ matrix.deps }}
         spack install --show-log-on-error --fail-fast ${{ matrix.deps }}
