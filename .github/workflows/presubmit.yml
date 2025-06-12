@@ -47,7 +47,7 @@ jobs:
       run: |
         # install llvm+clang
         sudo apt-get install libllvm18 llvm-18 llvm-18-dev
-        sudo apt-get install libclang-18-dev
+        sudo apt-get install clang-18 libclang-18-dev python3-clang-18
         # find the prefix where libclang is installed
         llvm_prefix=`llvm-config-18 --prefix`
 
@@ -62,11 +62,11 @@ jobs:
         spack external find --all --exclude bzip2 --exclude xz --exclude llvm
 
         # point spack to llvm+clang installed through apt-get
-        echo "  llvm:"                      >> ~/.spack/packages.yaml
-        echo "    buildable: false"         >> ~/.spack/packages.yaml
-        echo "    externals:"               >> ~/.spack/packages.yaml
-        echo "    - spec: llvm@18+clang"    >> ~/.spack/packages.yaml
-        echo "      prefix: ${llvm_prefix}" >> ~/.spack/packages.yaml
+        echo "  llvm:"                          >> ~/.spack/packages.yaml
+        echo "    buildable: false"             >> ~/.spack/packages.yaml
+        echo "    externals:"                   >> ~/.spack/packages.yaml
+        echo "    - spec: llvm@18+clang+python" >> ~/.spack/packages.yaml
+        echo "      prefix: ${llvm_prefix}"     >> ~/.spack/packages.yaml
 
         spack -d spec ${{ matrix.deps }}
         spack install --show-log-on-error --fail-fast ${{ matrix.deps }}
