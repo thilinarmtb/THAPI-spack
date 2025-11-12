@@ -46,7 +46,7 @@ class PyLibclang(PythonPackage):
         super().setup_run_environment(env)
         s = self.spec["llvm"]
         llvm_config = os.path.join(s.prefix.bin, "llvm-config-" + str(s.version[0]))
-        output == Executable(llvm_config)("--libdir", output=str, error=str)
+        output = Executable(llvm_config)("--libdir", output=str, error=str)
         lib_path = output.rstrip("\r\n")
         env.set("LIBCLANG_LIBRARY_FILE", find_libclang(lib_path))
 
